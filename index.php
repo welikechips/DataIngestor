@@ -2,11 +2,12 @@
 
 // Check if the remote IP address is allowed
 $allowedCIDR = '19.12.0.0/16';
-$allowedIPs= ['127.0.0.1'];
+$allowedIPs = ['127.0.0.1'];
 $remoteIP = $_SERVER['REMOTE_ADDR'];
 
 // Function to check if an IP is within a given CIDR range
-function ipInRange($ip, $range) {
+function ipInRange($ip, $range)
+{
     list($subnet, $bits) = explode('/', $range);
     $subnet = ip2long($subnet);
     $ip = ip2long($ip);
@@ -67,61 +68,64 @@ while ($row = $query->fetchArray(SQLITE3_ASSOC)) {
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 <body>
-    <div class="container mt-4">
-        <h1>Data Ingestor</h1>
-        
-        <form method="post">
-            <div class="form-group">
-                <label for="data">Data:</label>
-                <input type="text" class="form-control" name="data" id="data">
-            </div>
-            <button type="submit" class="btn btn-primary">Submit</button>
-        </form>
-        
-        <h2 class="mt-4">Saved Data:</h2>
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th style="width: 300px;">Data</th>
-                        <th>Referrer</th>
-                        <th>Client IP</th>
-                        <th>Date and Time</th> <!-- New column -->
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($dataArray as $dataItem) : ?>
-                        <tr>
-                            <td><?php echo $dataItem['id']; ?></td>
-                            <td style="width: 300px;">
-                                <div id="data_<?php echo $dataItem['id']; ?>">
-                                    <?php echo htmlentities(substr($dataItem['data'], 0, 50)); ?>
-                                </div>
-                                <div id="fullData_<?php echo $dataItem['id']; ?>" style="display: none;">
-                                    <?php echo htmlentities($dataItem['data']); ?>
-                                </div>
-                                <?php if (strlen($dataItem['data']) > 50) : ?>
-                                    <button class="btn btn-link btn-sm" onclick="toggleData(<?php echo $dataItem['id']; ?>)"><span id="toggleText_<?php echo $dataItem['id']; ?>">Show All</span></button>
-                                <?php endif; ?>
-                                <button class="btn btn-secondary btn-sm ml-2" onclick="copyToClipboard(<?php echo $dataItem['id']; ?>)">Copy to Clipboard</button>
-                            </td>
-                            <td><?php echo htmlentities($dataItem['referrer']); ?></td>
-                            <td><?php echo htmlentities($dataItem['client_ip']); ?></td>
-                            <td><?php echo htmlentities($dataItem['entry_datetime']); ?></td> <!-- New column -->
-                            <td>
-                                <form method="POST" action="index.php">
-                                    <input type="hidden" name="delete" value="<?php echo $dataItem['id']; ?>">
-                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+<div class="container mt-4">
+    <h1>Data Ingestor</h1>
+
+    <form method="post">
+        <div class="form-group">
+            <label for="data">Data:</label>
+            <input type="text" class="form-control" name="data" id="data">
         </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+    <h2 class="mt-4">Saved Data:</h2>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th style="width: 300px;">Data</th>
+                <th>Referrer</th>
+                <th>Client IP</th>
+                <th>Date and Time</th> <!-- New column -->
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($dataArray as $dataItem) : ?>
+                <tr>
+                    <td><?php echo $dataItem['id']; ?></td>
+                    <td style="width: 300px;">
+                        <div id="data_<?php echo $dataItem['id']; ?>">
+                            <?php echo htmlentities(substr($dataItem['data'], 0, 50)); ?>
+                        </div>
+                        <div id="fullData_<?php echo $dataItem['id']; ?>" style="display: none;">
+                            <?php echo htmlentities($dataItem['data']); ?>
+                        </div>
+                        <?php if (strlen($dataItem['data']) > 50) : ?>
+                            <button class="btn btn-link btn-sm" onclick="toggleData(<?php echo $dataItem['id']; ?>)">
+                                <span id="toggleText_<?php echo $dataItem['id']; ?>">Show All</span></button>
+                        <?php endif; ?>
+                        <button class="btn btn-secondary btn-sm ml-2"
+                                onclick="copyToClipboard(<?php echo $dataItem['id']; ?>)">Copy to Clipboard
+                        </button>
+                    </td>
+                    <td><?php echo htmlentities($dataItem['referrer']); ?></td>
+                    <td><?php echo htmlentities($dataItem['client_ip']); ?></td>
+                    <td><?php echo htmlentities($dataItem['entry_datetime']); ?></td> <!-- New column -->
+                    <td>
+                        <form method="POST" action="index.php">
+                            <input type="hidden" name="delete" value="<?php echo $dataItem['id']; ?>">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
     </div>
+</div>
 
 <script>
     function toggleData(id) {
@@ -143,7 +147,7 @@ while ($row = $query->fetchArray(SQLITE3_ASSOC)) {
         var dataElement = document.getElementById('fullData_' + id);
         var decodedData = tryBase64Decode(dataElement.innerText);
         var dataToCopy = decodedData !== null ? decodedData : dataElement.innerText;
-        
+
         var textArea = document.createElement('textarea');
         textArea.value = dataToCopy;
         document.body.appendChild(textArea);
@@ -166,12 +170,12 @@ while ($row = $query->fetchArray(SQLITE3_ASSOC)) {
     // Function to periodically check for new data and show toaster popup
     function checkForNewData() {
         var latestId = <?php echo !empty($dataArray) ? $dataArray[0]['id'] : 0; ?>; // Get the latest saved data ID
-        setInterval(function() {
+        setInterval(function () {
             $.ajax({
                 url: 'check_new_data.php', // Create this PHP file to check for new data
                 type: 'GET',
-                data: { latestId: latestId },
-                success: function(response) {
+                data: {latestId: latestId},
+                success: function (response) {
                     if (response === 'true') {
                         window.location = 'index.php';
                         latestId++; // Update the latest ID
@@ -180,6 +184,7 @@ while ($row = $query->fetchArray(SQLITE3_ASSOC)) {
             });
         }, 5000); // Check every 5 seconds
     }
+
     checkForNewData();
 </script>
 
