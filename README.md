@@ -11,7 +11,17 @@ sqlite3 data.db "CREATE TABLE entries (
 );"
 ```
 
-Add your ip to the $allowedIPs variable in the index.php file
+create a config.php file with:
+
+```php
+<?php
+
+// Define the allowed CIDR range and IP addresses
+$allowedCIDR = '19.12.0.0/16';
+$allowedIPs = ['127.0.0.1']; //Add your ip to this array
+
+?>
+```
 
 Run the php server
 ```console

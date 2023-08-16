@@ -1,8 +1,8 @@
 <?php
 
-// Check if the remote IP address is allowed
-$allowedCIDR = '19.12.0.0/16';
-$allowedIPs = ['127.0.0.1'];
+// Include the configuration file
+global $allowedCIDR, $allowedIPs;
+require_once 'config.php';
 $remoteIP = $_SERVER['REMOTE_ADDR'];
 
 // Function to check if an IP is within a given CIDR range
