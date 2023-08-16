@@ -1,28 +1,11 @@
 <?php
 
-// Include the configuration file
-global $allowedCIDR, $allowedIPs;
-require_once 'config.php';
-$remoteIP = $_SERVER['REMOTE_ADDR'];
+// Include the check access file
+require_once 'check_access.php';
+// Function to get the original client IP address considering proxy headers
 
-// Function to check if an IP is within a given CIDR range
-function ipInRange($ip, $range)
-{
-    list($subnet, $bits) = explode('/', $range);
-    $subnet = ip2long($subnet);
-    $ip = ip2long($ip);
-    $mask = -1 << (32 - $bits);
-    $subnet &= $mask;
-    return ($ip & $mask) == $subnet;
-}
-
-if (!ipInRange($remoteIP, $allowedCIDR) && !in_array($remoteIP, $allowedIPs)) {
-    header('HTTP/1.0 403 Forbidden');
-    echo 'Access denied.';
-    exit;
-}
 // SQLite database setup and connection
-$db = new SQLite3('data.db');
+$db = new SQLite3('306d717c3f592af0186ed31e2f056a7d/data.db');
 
 // Check if the "delete" parameter is set and delete the corresponding record
 if (isset($_POST['delete'])) {
@@ -38,7 +21,7 @@ if (isset($_POST['delete'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['data'])) {
     $data = $_POST['data'];
     $referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
-    $clientIP = $_SERVER['REMOTE_ADDR']; // Get the IP address of the client
+    $clientIP = getClientIP(); // Get the IP address of the client
 
     // Insert data into the database
     $stmt = $db->prepare('INSERT INTO entries (data, referrer, client_ip, entry_datetime) VALUES (:data, :referrer, :client_ip, :entry_datetime)');

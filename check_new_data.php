@@ -1,5 +1,6 @@
 <?php
-$db = new SQLite3('data.db');
+require_once 'check_access.php';
+$db = new SQLite3('306d717c3f592af0186ed31e2f056a7d/data.db');
 $latestId = $_GET['latestId'];
 
 // Use prepared statement with bound parameter to prevent SQL injection
@@ -10,4 +11,3 @@ $row = $result->fetchArray(SQLITE3_ASSOC);
 $newDataAvailable = $row['count'] > 0;
 
 echo $newDataAvailable ? 'true' : 'false';
-?>
