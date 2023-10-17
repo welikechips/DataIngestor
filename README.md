@@ -16,7 +16,6 @@ create a config.php file with:
 
 ```php
 
-cd 306d717c3f592af0186ed31e2f056a7d
 <?php
 
 // Define the allowed CIDR range and IP addresses
