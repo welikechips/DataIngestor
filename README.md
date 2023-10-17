@@ -37,3 +37,9 @@ if you want to work locally and forward your traffic through to another device
 ```console
 ssh root@<remote-ip> -R 6745:127.0.0.1:6745
 ```
+
+To send to the ingestor:
+
+```console
+curl -k -X POST -d "data=test" https://domain.com/
+```
