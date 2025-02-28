@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  dataingestor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    volumes:
+      - ./306d717c3f592af0186ed31e2f056a7d:/var/www/html/306d717c3f592af0186ed31e2f056a7d
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/html
+    restart: unless-stopped
+    networks:
+      - dataingestor-network
+
+networks:
+  dataingestor-network:
+    driver: bridge

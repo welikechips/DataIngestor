@@ -1,3 +1,36 @@
+# Database files (contain sensitive data)
 data.db
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE configuration directories
 /.idea
+/.vscode
+/.vs
+/.sublime-*
+
+# Configuration files (may contain sensitive information)
 config.php
+
+# Local environment files
+.env
+.env.local
+
+# Logs
+/logs
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+
+# Node modules if using any frontend build tools
+/node_modules
+/vendor
+
+# Build artifacts and caches
+/dist
+/cache
