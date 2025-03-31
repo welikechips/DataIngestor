@@ -55,15 +55,13 @@ DataIngestor provides a lightweight PHP-based web interface for collecting and m
 The `docker-compose.yml` file can be customized:
 
 ```yaml
-version: '3'
-
 services:
   dataingestor:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:80"  # Change the left number to modify the host port
+      - "8090:80"  # Change the left number to modify the host port
     volumes:
       - ./306d717c3f592af0186ed31e2f056a7d:/var/www/html/306d717c3f592af0186ed31e2f056a7d
     environment:
@@ -85,13 +83,14 @@ If you prefer to run without Docker:
 
 ```console
 cd 306d717c3f592af0186ed31e2f056a7d
-sqlite3 data.db "CREATE TABLE entries (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    data TEXT NOT NULL,
-    referrer TEXT,
-    client_ip TEXT NOT NULL,
-    entry_datetime DATETIME
-);"
+ sqlite3 data.db "CREATE TABLE entries (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     data TEXT NOT NULL,
+     notes TEXT,
+     referrer TEXT,
+     client_ip TEXT NOT NULL,
+     entry_datetime DATETIME
+ );"
 ```
 
 ### 2. Configure Access Control
@@ -182,3 +181,25 @@ fetch('http://your-server:8080/', {
 - Implement a dead drop protocol for sensitive data exfiltration
 - Use in conjunction with DNS/ICMP exfiltration tools for complete coverage
 - Integrate with your existing C2 infrastructure for centralized data collection
+
+## New Features
+
+### Notes for Data Entries
+- Each data entry now supports custom notes
+- Notes can be added when submitting new data
+- Notes can be edited for existing entries using the "Edit Notes" button
+- Notes are stored in the database and persist across sessions
+
+### Bootstrap Modals
+- All alerts have been replaced with Bootstrap modals for better user experience
+- Confirmation dialogs for delete operations
+- Copy to clipboard now shows the copied data in a modal
+
+### Auto-Update Toggle
+- Users can now turn off the automatic refresh feature
+- State is remembered between page loads using localStorage
+- When disabled, the page won't automatically refresh when new data arrives
+
+### Delete All Data
+- Added a "Delete All Data" button to quickly clear all entries
+- Requires confirmation via a modal dialog to prevent accidental deletion
