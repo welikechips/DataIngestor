@@ -8,13 +8,14 @@ if [ ! -f /var/www/html/306d717c3f592af0186ed31e2f056a7d/data.db ]; then
     sqlite3 data.db "CREATE TABLE entries (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         data TEXT NOT NULL,
+        notes TEXT,
         referrer TEXT,
         client_ip TEXT NOT NULL,
         entry_datetime DATETIME
     );"
     echo "Database created successfully."
 fi
-
+cp /var/www/html/306d717c3f592af0186ed31e2f056a7d/docker.config.php /var/www/html/306d717c3f592af0186ed31e2f056a7d/config.php
 # Ensure proper ownership
 chown -R www-data:www-data /var/www/html
 
