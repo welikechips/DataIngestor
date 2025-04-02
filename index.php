@@ -86,9 +86,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['data'])) {
  *
  * Fetch all records from the database, ordered by newest first.
  */
-$query = $db->query('SELECT * FROM entries ORDER BY id DESC');
+// Get current page from URL parameter, default to page 1
+$currentPage = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$entriesPerPage = 10; // Number of entries to show per page
+$offset = ($currentPage - 1) * $entriesPerPage;
+
+// Get total number of entries for pagination
+$totalEntries = $db->querySingle('SELECT COUNT(*) FROM entries');
+$totalPages = ceil($totalEntries / $entriesPerPage);
+
+// Retrieve entries for the current page
+$query = $db->prepare('SELECT * FROM entries ORDER BY id DESC LIMIT :limit OFFSET :offset');
+$query->bindValue(':limit', $entriesPerPage, SQLITE3_INTEGER);
+$query->bindValue(':offset', $offset, SQLITE3_INTEGER);
+$result = $query->execute();
+
 $dataArray = [];
-while ($row = $query->fetchArray(SQLITE3_ASSOC)) {
+while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
     $dataArray[] = $row;
 }
 ?>
@@ -109,12 +123,15 @@ while ($row = $query->fetchArray(SQLITE3_ASSOC)) {
             max-height: 200px;
             overflow-y: auto;
         }
+
         .btn-copy {
             margin-left: 5px;
         }
+
         .table-responsive {
             overflow-x: auto;
         }
+
         .notes-content {
             white-space: pre-wrap;
             max-height: 100px;
@@ -134,7 +151,8 @@ while ($row = $query->fetchArray(SQLITE3_ASSOC)) {
         </div>
         <div class="form-group">
             <label for="notes">Notes:</label>
-            <textarea class="form-control" name="notes" id="notes" placeholder="Optional notes for this entry"></textarea>
+            <textarea class="form-control" name="notes" id="notes"
+                      placeholder="Optional notes for this entry"></textarea>
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
@@ -205,7 +223,60 @@ while ($row = $query->fetchArray(SQLITE3_ASSOC)) {
                 </tr>
             <?php endforeach; ?>
             </tbody>
-        </table>
+        </table><!-- Pagination -->
+        <?php if ($totalPages > 1): ?>
+            <nav aria-label="Data entries pagination">
+                <ul class="pagination justify-content-center">
+                    <!-- Previous button -->
+                    <li class="page-item <?php echo ($currentPage <= 1) ? 'disabled' : ''; ?>">
+                        <a class="page-link"
+                           href="<?php echo ($currentPage <= 1) ? '#' : '?page=' . ($currentPage - 1); ?>"
+                           aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+
+                    <!-- Page numbers -->
+                    <?php
+                    // Determine range of page numbers to show
+                    $startPage = max(1, $currentPage - 2);
+                    $endPage = min($totalPages, $currentPage + 2);
+
+                    // Always show first page
+                    if ($startPage > 1) {
+                        echo '<li class="page-item"><a class="page-link" href="?page=1">1</a></li>';
+                        if ($startPage > 2) {
+                            echo '<li class="page-item disabled"><a class="page-link" href="#">...</a></li>';
+                        }
+                    }
+
+                    // Page numbers
+                    for ($i = $startPage; $i <= $endPage; $i++) {
+                        echo '<li class="page-item ' . ($i == $currentPage ? 'active' : '') . '">
+                <a class="page-link" href="?page=' . $i . '">' . $i . '</a>
+            </li>';
+                    }
+
+                    // Always show last page
+                    if ($endPage < $totalPages) {
+                        if ($endPage < $totalPages - 1) {
+                            echo '<li class="page-item disabled"><a class="page-link" href="#">...</a></li>';
+                        }
+                        echo '<li class="page-item"><a class="page-link" href="?page=' . $totalPages . '">' . $totalPages . '</a></li>';
+                    }
+                    ?>
+
+                    <!-- Next button -->
+                    <li class="page-item <?php echo ($currentPage >= $totalPages) ? 'disabled' : ''; ?>">
+                        <a class="page-link"
+                           href="<?php echo ($currentPage >= $totalPages) ? '#' : '?page=' . ($currentPage + 1); ?>"
+                           aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -234,7 +305,8 @@ while ($row = $query->fetchArray(SQLITE3_ASSOC)) {
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel"
+     aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -255,7 +327,8 @@ while ($row = $query->fetchArray(SQLITE3_ASSOC)) {
 </div>
 
 <!-- Delete All Confirmation Modal -->
-<div class="modal fade" id="deleteAllModal" tabindex="-1" role="dialog" aria-labelledby="deleteAllModalLabel" aria-hidden="true">
+<div class="modal fade" id="deleteAllModal" tabindex="-1" role="dialog" aria-labelledby="deleteAllModalLabel"
+     aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -265,7 +338,8 @@ while ($row = $query->fetchArray(SQLITE3_ASSOC)) {
                 </button>
             </div>
             <div class="modal-body">
-                <p class="text-danger">Warning: This will permanently delete all data entries. This action cannot be undone.</p>
+                <p class="text-danger">Warning: This will permanently delete all data entries. This action cannot be
+                    undone.</p>
                 <p>Are you sure you want to delete all data?</p>
             </div>
             <div class="modal-footer">
@@ -277,7 +351,8 @@ while ($row = $query->fetchArray(SQLITE3_ASSOC)) {
 </div>
 
 <!-- Notes Editing Modal -->
-<div class="modal fade" id="notesModal" tabindex="-1" role="dialog" aria-labelledby="notesModalLabel" aria-hidden="true">
+<div class="modal fade" id="notesModal" tabindex="-1" role="dialog" aria-labelledby="notesModalLabel"
+     aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -449,7 +524,7 @@ while ($row = $query->fetchArray(SQLITE3_ASSOC)) {
         updateInterval = setInterval(performCheck, 5000); // Check every 5 seconds
 
         // Handle toggle changes
-        $('#autoUpdateToggle').change(function() {
+        $('#autoUpdateToggle').change(function () {
             localStorage.setItem('autoUpdate', $(this).is(':checked'));
 
             if ($(this).is(':checked')) {
@@ -468,12 +543,12 @@ while ($row = $query->fetchArray(SQLITE3_ASSOC)) {
     }
 
     // Document ready handler
-    $(document).ready(function() {
+    $(document).ready(function () {
         // Initialize auto-update
         setupAutoUpdate();
 
         // Handle save notes button click
-        $('#saveNotes').click(function() {
+        $('#saveNotes').click(function () {
             var id = document.getElementById('notesEntryId').value;
             var notes = document.getElementById('notesText').value;
 
@@ -485,14 +560,14 @@ while ($row = $query->fetchArray(SQLITE3_ASSOC)) {
                     id: id,
                     notes: notes
                 },
-                success: function(response) {
+                success: function (response) {
                     var notesElement = document.getElementById('notes_' + id);
                     if (notesElement) {
                         notesElement.textContent = notes;
                     }
                     $('#notesModal').modal('hide');
                 },
-                error: function() {
+                error: function () {
                     alert('Failed to update notes.');
                     $('#notesModal').modal('hide');
                 }
@@ -500,7 +575,7 @@ while ($row = $query->fetchArray(SQLITE3_ASSOC)) {
         });
 
         // Initialize delete confirmation for individual items
-        $('.btn-delete').click(function(e) {
+        $('.btn-delete').click(function (e) {
             e.preventDefault();
             var deleteForm = $(this).closest('form');
             $('#confirmDelete').data('form', deleteForm);
@@ -508,26 +583,26 @@ while ($row = $query->fetchArray(SQLITE3_ASSOC)) {
         });
 
         // Handle delete confirmation
-        $('#confirmDelete').click(function() {
+        $('#confirmDelete').click(function () {
             var form = $(this).data('form');
             form.submit();
         });
 
         // Handle delete all button
-        $('#deleteAllBtn').click(function() {
+        $('#deleteAllBtn').click(function () {
             $('#deleteAllModal').modal('show');
         });
 
         // Handle delete all confirmation
-        $('#confirmDeleteAll').click(function() {
+        $('#confirmDeleteAll').click(function () {
             $.ajax({
                 url: 'delete_all.php',
                 type: 'POST',
-                success: function(response) {
+                success: function (response) {
                     $('#deleteAllModal').modal('hide');
                     window.location.reload(); // Reload the page to show the empty table
                 },
-                error: function() {
+                error: function () {
                     alert('Error: Failed to delete all entries.');
                     $('#deleteAllModal').modal('hide');
                 }
