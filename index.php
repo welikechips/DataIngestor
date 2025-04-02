@@ -385,7 +385,33 @@ while ($row = $query->fetchArray(SQLITE3_ASSOC)) {
      */
     function tryBase64Decode(input) {
         try {
-            return window.atob(input);
+            // Remove any whitespace and make sure we're working with a string
+            input = String(input).trim();
+
+            // Check if this looks like a Base64 string
+            if (!/^[A-Za-z0-9+/=]+$/.test(input)) {
+                return null;
+            }
+
+            // Try to decode
+            const decoded = window.atob(input);
+
+            // Perform a sanity check - if result contains a high percentage of non-printable characters,
+            // it's probably not a valid text decode
+            let nonPrintable = 0;
+            for (let i = 0; i < decoded.length; i++) {
+                const code = decoded.charCodeAt(i);
+                if (code < 32 || code > 126) {
+                    nonPrintable++;
+                }
+            }
+
+            // If more than 20% of characters are non-printable, likely not a proper text decode
+            if (nonPrintable > decoded.length * 0.2) {
+                return null;
+            }
+
+            return decoded;
         } catch (e) {
             return null;
         }
